@@ -1,4 +1,5 @@
-﻿using Login.Demo.Web.Repository;
+﻿using Login.Demo.Web.Entities;
+using Login.Demo.Web.Repository;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System;
@@ -20,7 +21,7 @@ namespace Login.Demo.Web.Service
             _configuration = configuration;
             registerAccount = new RegisterAccount();
         }
-        public dynamic Authenticate(string userName, string password)
+        public ResponseLogin Authenticate(string userName, string password)
         {
             var user = registerAccount.GetAccountdByUserName(userName);
             if(user != null)
@@ -40,10 +41,10 @@ namespace Login.Demo.Web.Service
                         SecurityAlgorithms.HmacSha256Signature)
                     };
                     var token = tokenHandler.CreateToken(tokenDecriptor);
-                    return new
+                    return new ResponseLogin()
                     {
-                        token = tokenHandler.WriteToken(token),
-                        userId = user.AccountId
+                        Token = tokenHandler.WriteToken(token),
+                        UserInfo = user
                     };
                 }
             }

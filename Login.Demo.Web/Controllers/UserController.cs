@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace Login.Demo.Web.Controllers
@@ -18,17 +19,27 @@ namespace Login.Demo.Web.Controllers
     {
         RegisterAccount registerAccount;
         UserService userService;
+        Account newAcc;
         public UserController(IConfiguration configuration)
         {
             registerAccount = new RegisterAccount(configuration);
             userService = new UserService(configuration);
         }
         [Authorize]
-        [HttpGet]
-        public IActionResult GetAll([FromBody]Guid userId)
+        [HttpGet("{accountId}")]
+        public IActionResult GetAll(Guid accountId)
         {
-            var user = registerAccount.GetAccountById(userId);
+            var user = registerAccount.GetAccountById(accountId);
             return Ok(user);
+        }
+        [Authorize]
+        [HttpGet("Authentication")]
+        public IActionResult CheckAuthentication()
+        {
+            var claimsIdentity = this.User.Identity as ClaimsIdentity;
+            var userId = claimsIdentity.FindFirst(ClaimTypes.Name)?.Value;
+            //string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            return Ok(userId);
         }
         [HttpPost("Login")]
         public IActionResult Login(Account account)
@@ -36,6 +47,8 @@ namespace Login.Demo.Web.Controllers
             var token = userService.Authenticate(account.UserName, account.Password);
             if (token != null)
             {
+                //Response.Cookies.Append("JWT", token.Token, new CookieOptions { IsEssential = true});
+                newAcc = token.UserInfo;
                 return Ok(token);
             }
             return Unauthorized();
