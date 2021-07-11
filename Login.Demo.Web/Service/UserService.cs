@@ -26,7 +26,8 @@ namespace Login.Demo.Web.Service
             var user = registerAccount.GetAccountdByUserName(userName);
             if(user != null)
             {
-                if(BCrypt.Net.BCrypt.Verify(password, user.Password))
+                var userPassword = registerAccount.GetPasswordByUserName(userName);
+                if (BCrypt.Net.BCrypt.Verify(password, userPassword))
                 {
                     // Tạo token 
                     var tokenHandler = new JwtSecurityTokenHandler();
@@ -34,7 +35,7 @@ namespace Login.Demo.Web.Service
                     var tokenDecriptor = new SecurityTokenDescriptor
                     {
                         Subject = new ClaimsIdentity(new Claim[] {
-                    new Claim(ClaimTypes.Name, userName)
+                    new Claim(ClaimTypes.Name, user.AccountId.ToString())
                 }),
                         Expires = DateTime.UtcNow.AddHours(1),
                         SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(secretKey),

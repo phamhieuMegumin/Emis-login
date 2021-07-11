@@ -19,7 +19,6 @@ namespace Login.Demo.Web.Controllers
     {
         RegisterAccount registerAccount;
         UserService userService;
-        Account newAcc;
         public UserController(IConfiguration configuration)
         {
             registerAccount = new RegisterAccount(configuration);
@@ -38,8 +37,31 @@ namespace Login.Demo.Web.Controllers
         {
             var claimsIdentity = this.User.Identity as ClaimsIdentity;
             var userId = claimsIdentity.FindFirst(ClaimTypes.Name)?.Value;
-            //string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            return Ok(userId);
+            var user = registerAccount.GetAccountById(Guid.Parse(userId));
+            return Ok(user);
+        }
+        [Authorize]
+        [HttpGet("Courses")]
+        public IActionResult GetCourses()
+        {
+            var claimsIdentity = this.User.Identity as ClaimsIdentity;
+            var userId = claimsIdentity.FindFirst(ClaimTypes.Name)?.Value;
+            var courses = registerAccount.GetCourses(Guid.Parse(userId));
+            return Ok(courses);
+        }
+        [Authorize]
+        [HttpPost("Course")]
+        public IActionResult InsertCourse(Course course)
+        {
+            var claimsIdentity = this.User.Identity as ClaimsIdentity;
+            var userId = claimsIdentity.FindFirst(ClaimTypes.Name)?.Value;
+            course.AccountId = Guid.Parse(userId);
+            var rowEffects = registerAccount.InsertCourse(course);
+            if(rowEffects > 0)
+            {
+                return Ok();
+            }
+            return NoContent();
         }
         [HttpPost("Login")]
         public IActionResult Login(Account account)
@@ -48,7 +70,6 @@ namespace Login.Demo.Web.Controllers
             if (token != null)
             {
                 //Response.Cookies.Append("JWT", token.Token, new CookieOptions { IsEssential = true});
-                newAcc = token.UserInfo;
                 return Ok(token);
             }
             return Unauthorized();

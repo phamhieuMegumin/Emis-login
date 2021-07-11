@@ -31,6 +31,24 @@ namespace Login.Demo.Web.Repository
                 return _dbConnection.Execute(sqlCommand, account, commandType: CommandType.StoredProcedure);
             };
         }
+        public int InsertCourse(Course course)
+        {
+            using (_dbConnection = new MySqlConnection(_connectString))
+            {
+                var sqlCommand = "Proc_InsertCourse";
+                return _dbConnection.Execute(sqlCommand, course, commandType: CommandType.StoredProcedure);
+            };
+        }
+        public IEnumerable<Course> GetCourses(Guid accountId)
+        {
+            using (_dbConnection = new MySqlConnection(_connectString))
+            {
+                var sqlCommand = "Proc_GetCourses";
+                DynamicParameters dynamicParameters = new DynamicParameters();
+                dynamicParameters.Add(@"m_accountId", accountId);
+                return _dbConnection.Query<Course>(sqlCommand, dynamicParameters, commandType: CommandType.StoredProcedure);
+            };
+        }
         public Account GetAccountdByUserName(string userName)
         {
             using (_dbConnection = new MySqlConnection(_connectString))
@@ -39,6 +57,16 @@ namespace Login.Demo.Web.Repository
                 DynamicParameters dynamicParameters = new DynamicParameters();
                 dynamicParameters.Add(@"m_userName", userName);
                 return _dbConnection.Query<Account>(sqlCommand, dynamicParameters, commandType: CommandType.StoredProcedure).FirstOrDefault();
+            }
+        }
+        public string GetPasswordByUserName(string userName)
+        {
+            using (_dbConnection = new MySqlConnection(_connectString))
+            {
+                var sqlCommand = "Proc_GetPasswordByUserName";
+                DynamicParameters dynamicParameters = new DynamicParameters();
+                dynamicParameters.Add(@"m_userName", userName);
+                return _dbConnection.Query<string>(sqlCommand, dynamicParameters, commandType: CommandType.StoredProcedure).FirstOrDefault();
             }
         }
         public Account GetAccountById(Guid accountId)
